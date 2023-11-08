@@ -1,0 +1,26 @@
+---
+title: "Module 7 Project Report"
+author: "Ana Pirosca, Jonah Kotzen, Katie Miller, Jessica Stolz"
+date: '`r Sys.Date()`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(MuMIn)
+library(tidyverse)
+```
+
+## Introduction
+
+## Methods
+In order to answer the questions above, we obtained experimental data by fabricating and programming a load-cell data aquisition system (via Arduino) then we recorded isometric MVCs at 12 distinct elbow angle by moving the upper body in different locations relative to the goniometer that is secured to a table. In orer to obtain fatigued data, we eccentrically lowered heavy items with the same arm used in the initial experiment, waited two minutes, then performed the isometric MVCs again. 
+
+In terms of how the class-wide data for an isometric MVC match a typical Force-Length relationship under control and fatigued conditions, we first normalized the data in order to make every student's relative force comparable. Then, we created a polynomial model in order to predict the maximum force at a specified angle under fatigued and non-fatigued conditions. In order to understand whether the differenced observed in the maximum forces of the muscles were statistically significant, we conducted an ANOVA analysis.
+
+## Results
+
+## Discussion
+
+## Author Contributions
