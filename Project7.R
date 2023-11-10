@@ -1,0 +1,1 @@
+ang <- seq(45,157.5,length.out = 12) #elbow angle
