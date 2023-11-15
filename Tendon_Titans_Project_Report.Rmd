@@ -15,9 +15,30 @@ library(tidyverse)
 ## Introduction
 
 ## Methods
-In order to answer the questions above, we obtained experimental data by fabricating and programming a load-cell data aquisition system (via Arduino) then we recorded isometric MVCs at 12 distinct elbow angle by moving the upper body in different locations relative to the goniometer that is secured to a table. In orer to obtain fatigued data, we eccentrically lowered heavy items with the same arm used in the initial experiment, waited two minutes, then performed the isometric MVCs again. 
+In order to answer the questions above, we obtained experimental data by fabricating and programming a load-cell data acquisition system (via Arduino) then we recorded isometric MVCs at 12 distinct elbow angle by moving the upper body in different locations relative to the goniometer that is secured to a table. In orer to obtain fatigued data, we eccentrically lowered heavy items with the same arm used in the initial experiment, waited two minutes, then performed the isometric MVCs again. 
 
-In terms of how the class-wide data for an isometric MVC match a typical Force-Length relationship under control and fatigued conditions, we first normalized the data in order to make every student's relative force comparable. Then, we created a polynomial model in order to predict the maximum force at a specified angle under fatigued and non-fatigued conditions. In order to understand whether the differenced observed in the maximum forces of the muscles were statistically significant, we conducted an ANOVA analysis.
+In terms of how the class-wide data for an isometric MVC match a typical Force-Length relationship under control and fatigued conditions, we first normalized the data in order to make every student's relative force comparable. Then, we created a polynomial model in order to predict the maximum force at a specified angle under fatigued and non-fatigued conditions. In order to understand whether the differences observed in the maximum forces of the muscles were statistically significant, we conducted an ANOVA analysis.
+
+```{r}
+# I'm creating a nice big tibble named "combined_data" of everyone's data so it might be easier to use
+file_paths <- list.files(pattern = ".csv", full.names = TRUE, recursive = TRUE)
+combined_data <- tibble()
+for (file_path in file_paths) {
+  file_name <- basename(file_path)
+  name <- str_extract(file_name, "(Ana|Jess|Jonah|Katie)")
+  state <- str_extract(file_name, "(Control|Fatigue)")
+  angle <- str_extract(file_name, "_([0-9]+)$") %>% str_remove("_")
+
+data <- read.csv(file_path, skip = 1) 
+  data_tibble <- as_tibble(data)  
+  data_combined <- bind_cols(
+    tibble(name = name, state = state, angle = angle),
+    data_tibble
+  )
+combined_data <- bind_rows(combined_data, data_combined)
+}
+```
+
 
 ## Results
 
