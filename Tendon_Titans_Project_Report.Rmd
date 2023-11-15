@@ -13,6 +13,9 @@ library(tidyverse)
 ```
 
 ## Introduction
+How do muscles work when you're tired? Recognizing the fundamental role of length in muscle force generation, we will explore the impact of fatigue on the force-length relationship, particularly focusing on the upper limb's forearm flexors and their 3rd order lever system. While previous research has delved into the basics of muscle mechanics, the missing piece that makes our study relevant is a comprehensive exploration of how fatigue specifically influences the force-length relationship in the context of isometric muscle contractions, offering insights into practical scenarios like sustained muscle effort or prolonged physical activity [ANA WILL INSERT CITATION HERE].
+
+Thus, we have two big questions: First, do the data about how much force your muscles can make match a certain pattern when you're pushing against something? Second, does the angle at which your muscles work change when you're tired compared to when you're not tired? Our investigation dives into the biomechanical aspects of muscle architecture, considering the mediation of force at the fiber level by crossbridges and the implications of lever configurations. 
 
 ## Methods
 In order to answer the questions above, we obtained experimental data by fabricating and programming a load-cell data acquisition system (via Arduino) then we recorded isometric MVCs at 12 distinct elbow angle by moving the upper body in different locations relative to the goniometer that is secured to a table. In orer to obtain fatigued data, we eccentrically lowered heavy items with the same arm used in the initial experiment, waited two minutes, then performed the isometric MVCs again. 
@@ -39,9 +42,27 @@ combined_data <- bind_rows(combined_data, data_combined)
 }
 ```
 
+```{r, comparing isometric MVCs}
+#finding the maximum Force (Fmax) and the angle it occurs
+normF <- c(#gonna put values in here :])%>%
+  ang[which.max(normF)]
+  
+#modeling for a better Fmax
+poly.m2 <- lm(normF~poly(ang,2)) 
+poly.m3 <- lm(normF~poly(ang,3)) 
+poly.m4 <- lm(normF~poly(ang,4))
+AICc(poly.m2,poly.m3,poly.m4)
+
+x.pred <- seq(45,157.5,length.out = 1000)
+```
+
 
 ## Results
 
 ## Discussion
 
 ## Author Contributions
+Jonah - Methods 
+Katie - Data collection + set up 
+Ana - Methods 
+Jess 
