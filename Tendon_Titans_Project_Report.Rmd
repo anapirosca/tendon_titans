@@ -46,10 +46,6 @@ void loop() {
 
 ```{r main, include=TRUE}
 
-library(tidyverse)
-library(readr)
-library(stringr)
-
 # Assuming the working directory is set to the 'tendon_titans' folder
 # Get all subdirectories (each representing a subject and state)
 subdirs <- list.dirs(path = ".", full.names = FALSE, recursive = FALSE)
@@ -100,22 +96,7 @@ print(combined_data)
 
 ```
 
-<<<<<<< Updated upstream
-```{r, comparing isometric MVCs}
-#finding the maximum Force (Fmax) and the angle it occurs
-normF <- c(#gonna put values in here :])%>%
-  ang[which.max(normF)]
-  
-#modeling for a better Fmax
-poly.m2 <- lm(normF~poly(ang,2)) 
-poly.m3 <- lm(normF~poly(ang,3)) 
-poly.m4 <- lm(normF~poly(ang,4))
-AICc(poly.m2,poly.m3,poly.m4)
 
-x.pred <- seq(45,157.5,length.out = 1000)
-```
-
-=======
 # Max Values - The Jonah Way
 ```{r max values , include=TRUE}
 
@@ -137,6 +118,20 @@ print(combined_data)
 
 ```
 
+## TEST 
+```{r, comparing isometric MVCs}
+#finding the maximum Force (Fmax) and the angle it occurs
+normF <- c(#gonna put values in here :])%>%
+  ang[which.max(normF)]
+  
+#modeling for a better Fmax
+poly.m2 <- lm(normF~poly(ang,2)) 
+poly.m3 <- lm(normF~poly(ang,3)) 
+poly.m4 <- lm(normF~poly(ang,4))
+AICc(poly.m2,poly.m3,poly.m4)
+
+x.pred <- seq(45,157.5,length.out = 1000)
+```
 
 # Max Values - The Chris Way
 
