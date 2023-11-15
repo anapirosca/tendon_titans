@@ -10,6 +10,9 @@ knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(MuMIn)
 library(tidyverse)
+library(readr)
+library(stringr)
+
 ```
 
 ## Introduction
@@ -22,26 +25,82 @@ In order to answer the questions above, we obtained experimental data by fabrica
 
 In terms of how the class-wide data for an isometric MVC match a typical Force-Length relationship under control and fatigued conditions, we first normalized the data in order to make every student's relative force comparable. Then, we created a polynomial model in order to predict the maximum force at a specified angle under fatigued and non-fatigued conditions. In order to understand whether the differences observed in the maximum forces of the muscles were statistically significant, we conducted an ANOVA analysis.
 
-```{r}
-# I'm creating a nice big tibble named "combined_data" of everyone's data so it might be easier to use
-file_paths <- list.files(pattern = ".csv", full.names = TRUE, recursive = TRUE)
-combined_data <- tibble()
-for (file_path in file_paths) {
-  file_name <- basename(file_path)
-  name <- str_extract(file_name, "(Ana|Jess|Jonah|Katie)")
-  state <- str_extract(file_name, "(Control|Fatigue)")
-  angle <- str_extract(file_name, "_([0-9]+)$") %>% str_remove("_")
+## Software and Coding the Arduino
+The Arduino was programmed using the following sketch...
 
-data <- read.csv(file_path, skip = 1) 
-  data_tibble <- as_tibble(data)  
-  data_combined <- bind_cols(
-    tibble(name = name, state = state, angle = angle),
-    data_tibble
-  )
-combined_data <- bind_rows(combined_data, data_combined)
+
+HX711 scale;
+
+void setup() {
+  Serial.begin(115200);
+  scale.begin(6, 7);
+  scale.tare();
 }
+
+void loop() {
+  float newReading = scale.get_units(10);
+  Serial.println(newReading);
+}
+
+## Combined Data 
+
+```{r main, include=TRUE}
+
+library(tidyverse)
+library(readr)
+library(stringr)
+
+# Assuming the working directory is set to the 'tendon_titans' folder
+# Get all subdirectories (each representing a subject and state)
+subdirs <- list.dirs(path = ".", full.names = FALSE, recursive = FALSE)
+
+# Initialize an empty data frame to store the combined data
+combined_data <- tibble()
+
+# Process each subdirectory
+for (subdir in subdirs) {
+  # Extract the subject's name and state from the subdirectory name
+  parts <- str_match(subdir, "^(.+) \\((Control|Fatigue)\\)$")
+  name <- parts[, 2]
+  state <- parts[, 3]
+
+  # List all CSV files in the subdirectory
+  file_paths <- list.files(path = subdir, pattern = "\\.csv$", full.names = TRUE)
+  
+  # Process each file
+  for (file_path in file_paths) {
+    # Extract the angle from the file name
+    angle <- str_extract(basename(file_path), "_([0-9]+\\.[0-9]+)") %>% parse_number()
+    
+    # Read the CSV file without assuming the first row is a header
+    data <- read_csv(file_path, col_names = FALSE, show_col_types = FALSE)
+    
+    # Assign a column name to the data and convert all values to absolute values
+    data <- data %>% 
+      rename(Measurement = 1) %>%
+      mutate(across(everything(), abs))  # This assumes that all columns are measurements
+    
+    # Add the subject's name, state, and angle as new columns in the dataframe
+    data <- data %>%
+      mutate(
+        Name = name,
+        State = state,
+        Angle = angle
+      )
+    
+    # Combine with the existing combined_data
+    combined_data <- bind_rows(combined_data, data)
+  }
+}
+
+# View the combined data
+print(combined_data)
+
+
+
 ```
 
+<<<<<<< Updated upstream
 ```{r, comparing isometric MVCs}
 #finding the maximum Force (Fmax) and the angle it occurs
 normF <- c(#gonna put values in here :])%>%
@@ -56,6 +115,119 @@ AICc(poly.m2,poly.m3,poly.m4)
 x.pred <- seq(45,157.5,length.out = 1000)
 ```
 
+=======
+# Max Values - The Jonah Way
+```{r max values , include=TRUE}
+
+# Assuming 'combined_data' is your tibble with all the data
+combined_data <- combined_data %>%
+  # Ensure all measurement values are absolute values
+  mutate(across(starts_with("Measurement"), abs)) %>%
+  # Group by Name, State, and Angle to calculate max within each group
+  group_by(Name, State, Angle) %>%
+  # Calculate the max measurement for each group
+  mutate(Max_Measurement = max(Measurement, na.rm = TRUE)) %>%
+  # Calculate the ratio of each measurement to the max measurement
+  mutate(Ratio = Measurement / Max_Measurement) %>%
+  # Ungroup the data if you want to perform other ungrouped operations later
+  ungroup()
+
+# View the modified data
+print(combined_data)
+
+```
+
+
+# Max Values - The Chris Way
+
+```{r normal values , include=TRUE}
+
+
+# Assuming 'combined_data' is the dataframe containing all the measurements
+
+# Normalize the data by dividing each measurement by the max measurement for each angle, name, and state
+normalized_data <- combined_data %>%
+  group_by(Name, State, Angle) %>%
+  mutate(Ratio = abs(Measurement) / max(abs(Measurement), na.rm = TRUE)) %>%
+  ungroup()
+
+# Define the range of angles to predict over
+x.pred <- seq(min(normalized_data$Angle), max(normalized_data$Angle), length.out = 1000)
+```
+
+# BIG ERROR - Fitting Polynomial Models
+```{r fitting poly, include=TRUE}
+
+# Fit polynomial models and calculate AICc for model selection
+best_models <- normalized_data %>%
+  group_by(Name, State) %>%
+  nest() %>%
+  mutate(
+    model_fits = map(data, ~ {
+      data <- .x
+      if (n_distinct(data$Angle) > 2) {
+        model2 <- lm(Ratio ~ poly(Angle, 2), data = data)
+        model3 <- lm(Ratio ~ poly(Angle, 3), data = data)
+        model4 <- lm(Ratio ~ poly(Angle, 4), data = data)
+        tibble(
+          model2 = list(model2),
+          model3 = list(model3),
+          model4 = list(model4),
+          aicc2 = AICc(model2),
+          aicc3 = AICc(model3),
+          aicc4 = AICc(model4)
+        )
+      } else {
+        tibble(
+          model2 = list(NA),
+          model3 = list(NA),
+          model4 = list(NA),
+          aicc2 = NA_real_,
+          aicc3 = NA_real_,
+          aicc4 = NA_real_
+        )
+      }
+    }),
+    best_aicc = pmap_dbl(model_fits, ~ min(c(...), na.rm = TRUE)),
+    best_model = pmap(model_fits, ~ .x[[which.min(c(..., na.rm = TRUE))]])
+  ) %>%
+  select(Name, State, best_model)
+
+# Predict the ratio for each angle using the best fitting model
+predictions <- map2(
+  best_models$best_model, 
+  best_models$State, 
+  ~ if (!is.na(.x)) augment(.x, newdata = data.frame(Angle = x.pred)) else tibble(Angle = x.pred, .fitted = NA_real_)
+)
+
+# Combine predictions with the best_models dataframe
+best_models <- best_models %>%
+  mutate(predictions = predictions)
+
+# Extracting the angles of maximum ratio
+theta_max <- best_models %>%
+  mutate(theta_max = map_dbl(predictions, ~ if (all(is.na(.x$.fitted))) NA_real_ else .x$Angle[which.max(.x$.fitted)]))
+
+# Calculate the mean shift and SEM of theta_max
+shifts <- theta_max %>%
+  group_by(Name) %>%
+  summarize(
+    control_theta_max = theta_max$theta_max[State == "Control"],
+    fatigue_theta_max = theta_max$theta_max[State == "Fatigue"],
+    shift = fatigue_theta_max - control_theta_max,
+    .groups = "drop"
+  ) %>%
+  summarize(
+    mean_shift = mean(shift, na.rm = TRUE),
+    se_shift = sd(shift, na.rm = TRUE) / sqrt(n())
+  )
+
+# Print the results
+print(shifts)
+
+
+```
+>>>>>>> Stashed changes
 
 ## Results
 
