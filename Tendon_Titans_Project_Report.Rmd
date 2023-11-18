@@ -3,7 +3,6 @@ title: "Module 7 Project Report"
 author: "Ana Pirosca, Jonah Kotzen, Katie Miller, Jessica Stolz"
 date: '`r Sys.Date()`'
 output: html_document
-bibliography: BIOL3140.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -17,9 +16,9 @@ library(stringr)
 ```
 
 ## Introduction
-How do muscles work when you're tired? Recognizing the fundamental role of length in muscle force generation, we will explore the impact of fatigue on the force-length relationship, particularly focusing on the upper limb's forearm flexors and their 3rd order lever system. While previous research has delved into the basics of muscle mechanics, the missing piece that makes our study relevant is a comprehensive exploration of how fatigue specifically influences the force-length relationship in the context of isometric muscle contractions, offering insights into practical scenarios like sustained muscle effort or prolonged physical activity (@enoka2008muscle).
+How do muscles work when you're tired? Recognizing the fundamental role of length in muscle force generation, we will explore the impact of fatigue on the force-length relationship, particularly focusing on the upper limb's forearm flexors and their 3rd order lever system. While previous research has delved into the basics of muscle mechanics, the missing piece that makes our study relevant is a comprehensive exploration of how fatigue specifically influences the force-length relationship in the context of isometric muscle contractions, offering insights into practical scenarios like sustained muscle effort or prolonged physical activity [ANA WILL INSERT CITATION HERE].
 
-Thus, we have two big questions: First, do the data about how much force your muscles can make match a certain pattern when you're pushing against something? Second, does the angle at which your muscles work change when you're tired compared to when you're not tired? Our investigation dives into the biomechanical aspects of muscle architecture, considering the mediation of force at the fiber level by crossbridges and the implications of lever configurations. (@chen2007intensity)
+Thus, we have two big questions: First, do the data about how much force your muscles can make match a certain pattern when you're pushing against something? Second, does the angle at which your muscles work change when you're tired compared to when you're not tired? Our investigation dives into the biomechanical aspects of muscle architecture, considering the mediation of force at the fiber level by crossbridges and the implications of lever configurations. 
 
 ## Methods
 In order to answer the questions above, we obtained experimental data by fabricating and programming a load-cell data acquisition system (via Arduino) then we recorded isometric MVCs at 12 distinct elbow angle by moving the upper body in different locations relative to the goniometer that is secured to a table. In orer to obtain fatigued data, we eccentrically lowered heavy items with the same arm used in the initial experiment, waited two minutes, then performed the isometric MVCs again. 
@@ -43,11 +42,10 @@ void loop() {
   Serial.println(newReading);
 }
 
-## Combined Data 
+## Old Data 
 
 ```{r main, include=TRUE}
 
-# Assuming the working directory is set to the 'tendon_titans' folder
 # Get all subdirectories (each representing a subject and state)
 subdirs <- list.dirs(path = ".", full.names = FALSE, recursive = FALSE)
 
@@ -93,10 +91,70 @@ for (subdir in subdirs) {
 # View the combined data
 print(combined_data)
 
+```
+
+# Jonah's Manipulation of the New_Data
+
+## Meta Data
+``` {r new, include=TRUE}
+
+# Get all CSV files in the 'new_data' folder
+file_paths <- list.files(path = "new_data", pattern = "\\.csv$", full.names = TRUE)
+
+# Initialize an empty tibble to store the combined metadata
+combined_metadata <- tibble(
+  TeamName = character(),
+  Person = character(),
+  State = character(),
+  Angle = double()
+)
+
+# Process each file
+for (file_path in file_paths) {
+  # Extract only the file name from the file path
+  file_name <- basename(file_path)
+  
+# Extract metadata from the file name
+parts <- str_match(file_name, "([a-zA-Z0-9]+)_(.+)_(control|fatigue)_(\\d+(\\.\\d+)?)\\.csv")
+  
+if (nrow(parts) > 0) {
+  teamname <- parts[, 2]
+  person <- parts[, 3]
+  state <- parts[, 4]
+  angle <- as.numeric(parts[, 5])  # Convert angle to numeric
+
+    # Create a tibble with the extracted metadata
+    metadata <- tibble(
+      TeamName = teamname,
+      Person = person,
+      State = state,
+      Angle = angle
+    )
+    
+    # Combine with the combined_metadata tibble
+    combined_metadata <- bind_rows(combined_metadata, metadata)
+  }
+}
+
+# Print the combined metadata tibble
+print(combined_metadata)
+
+```
+
+
+
+# Factoring in Force
+
+```{r bug fix, include=TRUE}
+
+force_data <- read.csv(file_path) %>% select(force)
 
 
 ```
 
+```{r combined data, include = TRUE}
+
+```
 
 # Max Values - The Jonah Way
 ```{r max values , include=TRUE}
@@ -225,6 +283,11 @@ print(shifts)
 ```
 >>>>>>> Stashed changes
 
+
+
+
+
+
 ## Results
 
 ## Discussion
@@ -233,4 +296,4 @@ print(shifts)
 Jonah - Methods 
 Katie - Data collection + set up 
 Ana - Methods 
-Jess - data collection / bibliography 
+Jess 
