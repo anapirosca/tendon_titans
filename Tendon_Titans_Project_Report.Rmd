@@ -3,6 +3,7 @@ title: "Module 7 Project Report"
 author: "Ana Pirosca, Jonah Kotzen, Katie Miller, Jessica Stolz"
 date: '`r Sys.Date()`'
 output: html_document
+bibliography: BIOL3140.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -232,4 +233,4 @@ print(shifts)
 Jonah - Methods 
 Katie - Data collection + set up 
 Ana - Methods 
-Jess 
+Jess - data collection / bibliography 
