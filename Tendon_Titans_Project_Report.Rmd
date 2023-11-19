@@ -12,6 +12,7 @@ library(MuMIn)
 library(tidyverse)
 library(readr)
 library(stringr)
+library(purrr)
 
 ```
 
@@ -42,60 +43,10 @@ void loop() {
   Serial.println(newReading);
 }
 
-## Old Data 
-
-```{r main, include=TRUE}
-
-# Get all subdirectories (each representing a subject and state)
-subdirs <- list.dirs(path = ".", full.names = FALSE, recursive = FALSE)
-
-# Initialize an empty data frame to store the combined data
-combined_data <- tibble()
-
-# Process each subdirectory
-for (subdir in subdirs) {
-  # Extract the subject's name and state from the subdirectory name
-  parts <- str_match(subdir, "^(.+) \\((Control|Fatigue)\\)$")
-  name <- parts[, 2]
-  state <- parts[, 3]
-
-  # List all CSV files in the subdirectory
-  file_paths <- list.files(path = subdir, pattern = "\\.csv$", full.names = TRUE)
-  
-  # Process each file
-  for (file_path in file_paths) {
-    # Extract the angle from the file name
-    angle <- str_extract(basename(file_path), "_([0-9]+\\.[0-9]+)") %>% parse_number()
-    
-    # Read the CSV file without assuming the first row is a header
-    data <- read_csv(file_path, col_names = FALSE, show_col_types = FALSE)
-    
-    # Assign a column name to the data and convert all values to absolute values
-    data <- data %>% 
-      rename(Measurement = 1) %>%
-      mutate(across(everything(), abs))  # This assumes that all columns are measurements
-    
-    # Add the subject's name, state, and angle as new columns in the dataframe
-    data <- data %>%
-      mutate(
-        Name = name,
-        State = state,
-        Angle = angle
-      )
-    
-    # Combine with the existing combined_data
-    combined_data <- bind_rows(combined_data, data)
-  }
-}
-
-# View the combined data
-print(combined_data)
-
-```
-
 # Jonah's Manipulation of the New_Data
 
 ## Meta Data
+
 ``` {r new, include=TRUE}
 
 # Get all CSV files in the 'new_data' folder
@@ -128,7 +79,8 @@ if (nrow(parts) > 0) {
       TeamName = teamname,
       Person = person,
       State = state,
-      Angle = angle
+      Angle = angle,
+      FileName = file_name
     )
     
     # Combine with the combined_metadata tibble
@@ -149,12 +101,79 @@ print(combined_metadata)
 
 force_data <- read.csv(file_path) %>% select(force)
 
-
 ```
 
 ```{r combined data, include = TRUE}
 
+# Define the function to read and process each file
+read_and_process_file <- function(file_path) {
+  force_data <- read.csv(file_path) %>% select(force)
+  tibble(filename = basename(file_path), force = force_data$force)
+}
+
+# Create an empty list to store the results
+combined_data <- list()
+
+# Loop through file_paths and read/append data
+for (file_path in file_paths) {
+  data <- read_and_process_file(file_path)
+  combined_data <- append(combined_data, list(data))
+}
+
+# Combine the list of data frames into a single tibble
+combined_data <- bind_rows(combined_data)
+
+print(combined_data)
+
 ```
+
+```{r stuff, include=TRUE}
+# Get all CSV files in the 'new_data' folder
+file_paths <- list.files(path = "new_data", pattern = "\\.csv$", full.names = TRUE)
+
+# Initialize an empty list to store the combined data
+combined_data_list <- list()
+
+# Process each file
+for (file_path in file_paths) {
+  # Extract only the file name from the file path
+  file_name <- basename(file_path)
+  
+  # Extract metadata from the file name
+  parts <- str_match(file_name, "([a-zA-Z0-9]+)_(.+)_(control|fatigue)_(\\d+(\\.\\d+)?)\\.csv")
+  
+  if (nrow(parts) > 0) {
+    teamname <- parts[, 2]
+    person <- parts[, 3]
+    state <- parts[, 4]
+    angle <- as.numeric(parts[, 5])  # Convert angle to numeric
+    
+    # Read force_data and select the 'force' column
+    force_data <- read.csv(file_path) %>% select(force)
+    
+    # Create a tibble with the extracted metadata
+    metadata <- tibble(
+      TeamName = teamname,
+      Person = person,
+      State = state,
+      Angle = angle,
+      Force = force_data$force  # Add the 'force' column
+    )
+    
+    # Store the combined data in the list
+    combined_data_list[[file_name]] <- metadata
+  }
+}
+
+# Combine the list of data frames into a single data frame
+combined_data <- do.call(rbind, combined_data_list)
+
+# Print the combined data tibble
+print(combined_data)
+
+
+```
+
 
 # Max Values - The Jonah Way
 ```{r max values , include=TRUE}
@@ -162,112 +181,177 @@ force_data <- read.csv(file_path) %>% select(force)
 # Assuming 'combined_data' is your tibble with all the data
 combined_data <- combined_data %>%
   # Ensure all measurement values are absolute values
-  mutate(across(starts_with("Measurement"), abs)) %>%
+  mutate(across(starts_with("Force"), abs)) %>%
   # Group by Name, State, and Angle to calculate max within each group
-  group_by(Name, State, Angle) %>%
+  group_by(Person, State, Angle) %>%
   # Calculate the max measurement for each group
-  mutate(Max_Measurement = max(Measurement, na.rm = TRUE)) %>%
+  mutate(Max_Force = max(Force, na.rm = TRUE)) %>%
   # Calculate the ratio of each measurement to the max measurement
-  mutate(Ratio = Measurement / Max_Measurement) %>%
-  # Ungroup the data if you want to perform other ungrouped operations later
-  ungroup()
 
 # View the modified data
 print(combined_data)
 
 ```
 
-## TEST 
-```{r, comparing isometric MVCs}
-#finding the maximum Force (Fmax) and the angle it occurs
-normF <- c(#gonna put values in here :])%>%
-  ang[which.max(normF)]
-  
-#modeling for a better Fmax
-poly.m2 <- lm(normF~poly(ang,2)) 
-poly.m3 <- lm(normF~poly(ang,3)) 
-poly.m4 <- lm(normF~poly(ang,4))
-AICc(poly.m2,poly.m3,poly.m4)
-
-x.pred <- seq(45,157.5,length.out = 1000)
-```
-
 # Max Values - The Chris Way
+```{r max, include=TRUE}
 
-```{r normal values , include=TRUE}
-
-
-# Assuming 'combined_data' is the dataframe containing all the measurements
-
-# Normalize the data by dividing each measurement by the max measurement for each angle, name, and state
-normalized_data <- combined_data %>%
-  group_by(Name, State, Angle) %>%
-  mutate(Ratio = abs(Measurement) / max(abs(Measurement), na.rm = TRUE)) %>%
+combined_data_norm <- combined_data %>%
+  group_by(Person, State) %>%
+  mutate(normF = Max_Force / max(Max_Force, na.rm = TRUE)) %>%
   ungroup()
 
-# Define the range of angles to predict over
-x.pred <- seq(min(normalized_data$Angle), max(normalized_data$Angle), length.out = 1000)
+filtered_data <- combined_data %>%
+  filter(TeamName == "armstrongg", Person == "Lauren", State == "fatigue") %>%
+  group_by(Person, State) %>%
+  mutate(normF = Max_Force / max(Max_Force, na.rm = TRUE)) %>%
+  ungroup()
+
+ggplot(filtered_data, aes(x = Angle, y = normF)) +
+  geom_point() +  # Plot points
+  labs(x = "Angle", y = "normF") +  # Label axes
+  ggtitle("normF vs. Angle")  # Add a title
+
+#### YOU NEED TO PREDICT FORCE USING THE 1000 ANGLES
+
 ```
 
-# BIG ERROR - Fitting Polynomial Models
-```{r fitting poly, include=TRUE}
+1. Library Loading and Initial Data Grouping
+```{r load, include=TRUE}
 
-# Fit polynomial models and calculate AICc for model selection
-best_models <- normalized_data %>%
-  group_by(Name, State) %>%
-  nest() %>%
-  mutate(
-    model_fits = map(data, ~ {
-      data <- .x
-      if (n_distinct(data$Angle) > 2) {
-        model2 <- lm(Ratio ~ poly(Angle, 2), data = data)
-        model3 <- lm(Ratio ~ poly(Angle, 3), data = data)
-        model4 <- lm(Ratio ~ poly(Angle, 4), data = data)
-        tibble(
-          model2 = list(model2),
-          model3 = list(model3),
-          model4 = list(model4),
-          aicc2 = AICc(model2),
-          aicc3 = AICc(model3),
-          aicc4 = AICc(model4)
-        )
-      } else {
-        tibble(
-          model2 = list(NA),
-          model3 = list(NA),
-          model4 = list(NA),
-          aicc2 = NA_real_,
-          aicc3 = NA_real_,
-          aicc4 = NA_real_
-        )
-      }
-    }),
-    best_aicc = pmap_dbl(model_fits, ~ min(c(...), na.rm = TRUE)),
-    best_model = pmap(model_fits, ~ .x[[which.min(c(..., na.rm = TRUE))]])
-  ) %>%
-  select(Name, State, best_model)
+library(dplyr)
+library(purrr)
+library(broom) # For augment() and tidy()
 
-# Predict the ratio for each angle using the best fitting model
-predictions <- map2(
-  best_models$best_model, 
-  best_models$State, 
-  ~ if (!is.na(.x)) augment(.x, newdata = data.frame(Angle = x.pred)) else tibble(Angle = x.pred, .fitted = NA_real_)
-)
+# Group the data by 'Person' and 'State' and nest the data for model fitting
+best_models <- combined_data %>%
+  group_by(Person, State) %>%
+  nest()
 
-# Combine predictions with the best_models dataframe
+print(best_models)
+```
+
+2. Model Fitting
+```{r model, include=TRUE}
 best_models <- best_models %>%
-  mutate(predictions = predictions)
+  mutate(model_fits = map(data, ~ {
+    data <- .x
+    num_unique_points <- n_distinct(data$Angle)
+    # Initialize an empty list to store models and AICc values
+    models_list <- vector("list", 3)
+    names(models_list) <- c("model2", "model3", "model4")
+    aicc_list <- numeric(3)
+    names(aicc_list) <- c("aicc2", "aicc3", "aicc4")
+    # Fit models only if enough unique points are available
+    if (num_unique_points > 1) {
+      for (i in 2:min(4, num_unique_points - 1)) {
+        model <- lm(normF ~ poly(Angle, i), data = data)
+        models_list[[i - 1]] <- model
+        aicc_list[i - 1] <- AICc(model)
+      }
+    }
+    tibble(models_list, aicc_list)
+  }))
 
-# Extracting the angles of maximum ratio
-theta_max <- best_models %>%
-  mutate(theta_max = map_dbl(predictions, ~ if (all(is.na(.x$.fitted))) NA_real_ else .x$Angle[which.max(.x$.fitted)]))
+##best_models$model_fits to check
+```
 
-# Calculate the mean shift and SEM of theta_max
-shifts <- theta_max %>%
-  group_by(Name) %>%
+3. Selecting the Best Model
+```{r select, include=TRUE}
+best_models <- best_models %>%
+  mutate(best_model = map(model_fits, ~ {
+    aicc_values <- .x %>% select(starts_with("aicc")) %>% unlist()
+    model_names <- names(aicc_values)
+    valid_aicc_values <- na.omit(aicc_values)
+    if (length(valid_aicc_values) > 0) {
+      best_model_index <- which.min(valid_aicc_values)
+      best_model_name <- model_names[best_model_index]
+      list(best_model_name = best_model_name, best_model = .x[[best_model_name]])
+    } else {
+      list(best_model_name = NA, best_model = NA)
+    }
+  })) %>%
+  select(Person, State, best_model)
+
+best_models$best_model %>% 
+  map(~ .x$best_model_name) %>% 
+  print()
+
+# This will print the best_model_name for each model in the best_models list-column
+print(sapply(best_models$best_model, function(x) x$best_model_name))
+
+# Extract the best_model_name and count the occurrences
+model_names <- sapply(best_models$best_model, function(x) x$best_model_name)
+model_counts <- table(model_names)
+
+# Print the counts for aicc_list.aicc2 and aicc_list.aicc4
+ModelTally <- c(model_counts["aicc_list.aicc2"], model_counts["aicc_list.aicc3"], model_counts["aicc_list.aicc4"])
+
+print(ModelTally)
+
+#Thus, aicc_list.aicc2 / poly2 is the go-to!!
+
+```
+
+
+4. Making Predictions #ERROR BUT WORK ON PREDICTIONS UP TOP BEFORE COMING HERE# #IN ESSENCE, WE NEED TO RUN PREDICTIONS ON EVERY SINGLE STATE (CONTROL or FATIGUE)
+```{r predict, include=TRUE}
+
+
+library(dplyr)
+library(purrr)
+library(ggplot2)
+library(broom)  # For augment() function
+
+# Assuming combined_data has been properly created and contains 'Person', 'State', 'Angle', and 'normF' columns
+
+# Step 1: Define the sequence of angles for prediction
+x.pred <- seq(45, 157.5, length.out = 1000)
+
+library(dplyr)
+library(purrr)
+
+# Assuming combined_data has been properly created and contains 'Person', 'State', 'Angle', and 'normF' columns
+
+# Step 1: Define the sequence of angles for prediction
+x.pred <- seq(45, 157.5, length.out = 1000)
+
+# Step 2: Check the structure of .x and fit the model if it is indeed a dataframe
+predictions <- best_models %>%
+  mutate(predicted_values = map(data, ~ {
+    # Check the structure of .x
+    if (is.data.frame(.x)) {
+      # .x is a dataframe, so we can proceed to fit the model
+      model <- lm(normF ~ poly(Angle, 2), data = .x)
+      # Make predictions using the fitted model
+      new_data <- data.frame(Angle = x.pred)
+      new_data$Predicted_normF <- predict(model, newdata = new_data)
+      return(new_data)
+    } else {
+      # .x is not a dataframe, print .x to see what it is
+      print(.x)
+      stop("Data is not a dataframe.")
+    }
+  }))
+
+
+```
+
+5. Extracting Max Angle Values and Calculating Shifts #FIX AFTER CORRECTING PREDICTIONS
+```{r extract, include=TRUE}
+# Extract the angles of maximum normF for each 'Person' and 'State'
+theta_max <- map(predictions, ~ if (all(is.na(.x$.fitted))) NA_real_ else .x$Angle[which.max(.x$.fitted)])
+
+# Bind the 'theta_max' values to the 'best_models' dataframe
+best_models <- best_models %>%
+  mutate(theta_max = theta_max)
+
+# Calculate shifts
+shifts <- best_models %>%
+  group_by(Person) %>%
   summarize(
-    control_theta_max = theta_max$theta_max[State == "Control"],
-    fatigue_theta_max = theta_max$theta_max[State == "Fatigue"],
+    control_theta_max = mean(theta_max[State == "Control"], na.rm = TRUE),
+    fatigue_theta_max = mean(theta_max[State == "Fatigue"], na.rm = TRUE),
     shift = fatigue_theta_max - control_theta_max,
     .groups = "drop"
   ) %>%
@@ -281,12 +365,6 @@ print(shifts)
 
 
 ```
->>>>>>> Stashed changes
-
-
-
-
-
 
 ## Results
 
