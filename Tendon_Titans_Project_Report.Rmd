@@ -375,12 +375,14 @@ ggplot(best_models_filtered, aes(x = State, y = theta_max, fill = State)) +
 ```
 
 ## Discussion
+The collected data depicts a shift in the peak force relationship in the direction of larger elbow-forearm angles, with the fatigued muscle achieving a maximal value as seen further to the right of the control. The average shift in the maximal angle of force (theta max), was approximately 3.5° higher. This data goes in agreement with prior research outlined by David Jones (@jones2010changes) and other conclusions outlined in the introduction. 
 
+Based on certain discrepancies in the data, additional trials should be performed against a horizontal surface in order to ensure the isolation of the bicep and observe an expected peak.  Involvement of other muscles like the chest and shoulder during the experiment could have influenced the force output. Despite this additional involvement of varying muscle groups, the maximal force produced when fatigued was shown to take place at greater angles, which again highlights the complex interplay between muscle fatigue, force generation, and the activation of different muscle groups
 
 ## Author Contributions
 - Jonah and Ana were responsible for developing the methodology, ensuring our approach was robust and scientifically sound.
 - Katie led the data collection and experimental setup, meticulously organizing and executing the tasks necessary for acquiring our data set, as well as some minor formatting edits for visual appeal.
-- Jess contributed to the interpretation of our results, providing valuable insights that helped shape our discussion and conclusions.
+- Jess contributed to the interpretation of our results and writing the disccion, providing valuable insights that helped shape our discussion and conclusions. Along with the creation of the bibliography. 
 - Jonah focused on data analysis and the drafting of the project report. This included writing the code for data manipulation, performing statistical analyses, and generating the visual representations of our findings.
 
 ## References
