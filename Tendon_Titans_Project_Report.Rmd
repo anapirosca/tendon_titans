@@ -3,6 +3,7 @@ title: "Module 7 Project Report"
 author: "Ana Pirosca, Jonah Kotzen, Katie Miller, Jessica Stolz"
 date: '`r Sys.Date()`'
 output: html_document
+bibliography: BIOL3140.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -16,12 +17,12 @@ library(purrr)
 
 ```
 
-## Introduction
+# Introduction
 How do muscles work when you're tired? Recognizing the fundamental role of length in muscle force generation, we will explore the impact of fatigue on the force-length relationship, particularly focusing on the upper limb's forearm flexors and their 3rd order lever system. While previous research has delved into the basics of muscle mechanics, the missing piece that makes our study relevant is a comprehensive exploration of how fatigue specifically influences the force-length relationship in the context of isometric muscle contractions, offering insights into practical scenarios like sustained muscle effort or prolonged physical activity (@enoka2008muscle).
 
 Thus, we have two big questions: First, do the data about how much force your muscles can make match a certain pattern when you're pushing against something? Second, does the angle at which your muscles work change when you're tired compared to when you're not tired? Our investigation dives into the biomechanical aspects of muscle architecture, considering the mediation of force at the fiber level by crossbridges and the implications of lever configurations. (@chen2007intensity)
 
-## Methods
+# Methods
 In order to answer the questions above, we obtained experimental data by fabricating and programming a load-cell data acquisition system (via Arduino) then we recorded isometric MVCs at 12 distinct elbow angle by moving the upper body in different locations relative to the goniometer that is secured to a table. In orer to obtain fatigued data, we eccentrically lowered heavy items with the same arm used in the initial experiment, waited two minutes, then performed the isometric MVCs again. 
 
 In terms of how the class-wide data for an isometric MVC match a typical Force-Length relationship under control and fatigued conditions, we first normalized the data in order to make every student's relative force comparable. Then, we created a polynomial model in order to predict the maximum force at a specified angle under fatigued and non-fatigued conditions. In order to understand whether the differences observed in the maximum forces of the muscles were statistically significant, we conducted an ANOVA analysis.
@@ -43,10 +44,9 @@ void loop() {
   Serial.println(newReading);
 }
 
-# Manipulation of the New Data into Meta Data Sorting
+## Manipulation of the New Data into Meta Data Sorting
 
-## Meta Data
-
+### Meta Data
 ``` {r new, include=TRUE}
 
 # Get all CSV files in the 'new_data' folder
@@ -93,10 +93,7 @@ print(combined_metadata)
 
 ```
 
-
-
-# Factoring in Force
-
+### Factoring in Force
 ```{r bug fix, include=TRUE}
 
 force_data <- read.csv(file_path) %>% select(force)
@@ -181,10 +178,9 @@ print(combined_data)
 
 ```
 
-
 # Main Data Methods
 
-## 1. Load Library and Norm Force
+## Chunk 1: Load Library and Norm Force
 ```{r combined, include=TRUE}
 # Load the necessary libraries
 library(dplyr)
@@ -210,7 +206,8 @@ combined_data_norm <- combined_data %>%
 # Print the normalized data
 print(combined_data_norm)
 ```
-# Chunk 2: Model Fitting and AICc Calculation
+
+## Chunk 2: Model Fitting and AICc Calculation
 ```{r chunk2, include=TRUE}
 
 # 2. Model Fitting and AICc calculation
@@ -242,7 +239,7 @@ print(best_models)
 
 ```
 
-# Chunk 3: Pivot Longer
+## Chunk 3: Pivot Longer
 ```{r chunk3, include=TRUE}
 
 # 3. Pivot longer to have a tidy format similar to the given example
@@ -261,8 +258,7 @@ print(best_models_long)
 
 ```
 
-
-# Chunk 4A: Fit Models and Predict Normalized Forces
+## Chunk 4: Fit Models and Predict Normalized Forces
 ```{r chunk 4b, include=TRUE}
 
 # Define a sequence of new angle values for predictions, from 45 to 157.5
@@ -296,7 +292,7 @@ print(predictions_with_theta_max)
 
 ```
 
-# Chunk 4B: Best Models Filtered
+## Chunk 5: Best Models Filtered
 ```{r chunk 4a, include=TRUE}
 # Assuming best_models_long contains AICc values for each Person, State, and model
 # Assuming predictions_with_theta_max contains theta_max values for each Person, State, and model
@@ -316,7 +312,7 @@ print(best_models_filtered)
 
 ```
 
-# Problem with Alex/Hannah
+### Problem with Alex/Hannah
 ```{r bugfix, include=TRUE}
 
 best_models_filtered <- best_models_long %>%
@@ -335,8 +331,7 @@ print(best_models_filtered)
 
 ```
 
-# Chunk4C: Shift Analysis
-
+## Chunk 6: Shift Analysis
 ```{r shift, include=TRUE}
 # Perform ANOVA to test if there's a significant difference in theta_max between states
 anova_result <- anova(lm(theta_max ~ State, data = best_models_filtered))
@@ -355,6 +350,8 @@ shift_analysis <- theta_max_wide %>%
 
 ```
 
+# Results
+
 ## Anova analysis
 ```{r anova, include=TRUE}
 print(anova_result)
@@ -364,7 +361,6 @@ print(anova_result)
 ```{r shifts, include=TRUE}
 print(shift_analysis)
 ```
-# Final Visuals (For Fun)
 
 ## Theta Max Comparison:
 ```{r TM, include=TRUE}
@@ -378,14 +374,13 @@ ggplot(best_models_filtered, aes(x = State, y = theta_max, fill = State)) +
 
 ```
 
-
-
-## Results
-
 ## Discussion
+
 
 ## Author Contributions
 - Jonah and Ana were responsible for developing the methodology, ensuring our approach was robust and scientifically sound.
-- Katie led the data collection and experimental setup, meticulously organizing and executing the tasks necessary for acquiring our data set.
+- Katie led the data collection and experimental setup, meticulously organizing and executing the tasks necessary for acquiring our data set, as well as some minor formatting edits for visual appeal.
 - Jess contributed to the interpretation of our results, providing valuable insights that helped shape our discussion and conclusions.
 - Jonah focused on data analysis and the drafting of the project report. This included writing the code for data manipulation, performing statistical analyses, and generating the visual representations of our findings.
+
+## References
