@@ -382,7 +382,7 @@ Based on certain discrepancies in the data, additional trials should be performe
 ## Author Contributions
 - Jonah and Ana were responsible for developing the methodology, ensuring our approach was robust and scientifically sound.
 - Katie led the data collection and experimental setup, meticulously organizing and executing the tasks necessary for acquiring our data set, as well as some minor formatting edits for visual appeal.
-- Jess contributed to the interpretation of our results and writing the disccion, providing valuable insights that helped shape our discussion and conclusions. Along with the creation of the bibliography. 
+- Jess contributed to the interpretation of our results and writing the discussion, providing valuable insights that helped shape our discussion and conclusions. Along with the creation of the bibliography. 
 - Jonah focused on data analysis and the drafting of the project report. This included writing the code for data manipulation, performing statistical analyses, and generating the visual representations of our findings.
 
 ## References
