@@ -375,9 +375,16 @@ ggplot(best_models_filtered, aes(x = State, y = theta_max, fill = State)) +
 ```
 
 ## Discussion
-The collected data depicts a shift in the peak force relationship in the direction of larger elbow-forearm angles, with the fatigued muscle achieving a maximal value as seen further to the right of the control. The average shift in the maximal angle of force (theta max), was approximately 3.5° higher. This data goes in agreement with prior research outlined by David Jones (@jones2010changes) and other conclusions outlined in the introduction. 
 
-Based on certain discrepancies in the data, additional trials should be performed against a horizontal surface in order to ensure the isolation of the bicep and observe an expected peak.  Involvement of other muscles like the chest and shoulder during the experiment could have influenced the force output. Despite this additional involvement of varying muscle groups, the maximal force produced when fatigued was shown to take place at greater angles, which again highlights the complex interplay between muscle fatigue, force generation, and the activation of different muscle groups
+Our study's findings indicate a notable shift in the peak force-angle relationship towards larger elbow-forearm angles under fatigue. Specifically, the fatigued muscle condition demonstrated a higher maximal force angle (theta max), averaging approximately 3.16° more than in the control state. This observation aligns with the research conducted by David Jones (@jones2010changes) and supports the hypotheses presented in our introduction.
+
+The ANOVA analysis, however, shows no statistically significant difference in theta max between the control and fatigued states (F value = 0.1148, p-value = 0.7363). While our results demonstrate a trend towards a shift in the maximal force angle when fatigued, the lack of statistical significance suggests that this trend may not be universally applicable across all subjects or conditions.
+
+Given the variations in our data, we recommend conducting further trials with modifications in the experimental setup. One such modification could be performing the trials against a horizontal surface to isolate bicep muscle activity more effectively. The involvement of additional muscle groups such as the chest and shoulder during our experiments could have influenced the force output, potentially affecting the accuracy of our measurements.
+
+Despite these potential discrepancies, the observed shift towards greater angles for maximal force generation in fatigued muscles underscores the complex dynamics between muscle fatigue, force generation, and the activation of various muscle groups. This complexity points to the need for more nuanced approaches in studying muscle mechanics, especially under varying physiological conditions like fatigue.
+
+Future research should aim to refine the experimental setup to minimize external influences and explore the biomechanical changes occurring at the muscular and neuromuscular junction levels during fatigue. Such studies will enhance our understanding of muscle function and adaptation in response to fatigue, providing valuable insights for applications in sports science, rehabilitation, and ergonomics.
 
 ## Author Contributions
 - Jonah and Ana were responsible for developing the methodology, ensuring our approach was robust and scientifically sound.
